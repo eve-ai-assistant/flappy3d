@@ -53,7 +53,7 @@
 
         /* Orientation Lock */
         #landscape-lock { display: none; position: absolute; inset: 0; background: #111; color: #fff; z-index: 999; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; text-align: center; }
-        @media (orientation: landscape) { #landscape-lock { display: flex; } #game-wrapper { display: none; } }
+        @media (orientation: landscape) and (max-width: 1024px) { #landscape-lock { display: flex; } #game-wrapper { display: none; } }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -197,12 +197,12 @@ function setupBird() {
     bird = new THREE.Group();
 
     // Body (Strictly 8 Triangles)
-    const body = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), new THREE.MeshLambertMaterial({ color: 0xffcc00, flatShading: true }));
+    const body = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), new THREE.MeshPhongMaterial({ color: 0xffcc00, flatShading: true }));
     body.castShadow = true; bird.add(body);
 
     // Wings (Strictly 2 Triangles each)
     const wingGeo = new THREE.PlaneGeometry(0.3, 0.2);
-    const wingMat = new THREE.MeshLambertMaterial({ color: 0xff9900, side: THREE.DoubleSide, flatShading: true });
+    const wingMat = new THREE.MeshPhongMaterial({ color: 0xff9900, side: THREE.DoubleSide, flatShading: true });
     wingL = new THREE.Mesh(wingGeo, wingMat); wingL.position.set(-0.4, 0, 0);
     wingR = new THREE.Mesh(wingGeo, wingMat); wingR.position.set(0.4, 0, 0);
     bird.add(wingL, wingR);
@@ -217,7 +217,7 @@ function setupBird() {
     ]), 3));
     beakGeo.setIndex([0, 1, 3,  0, 3, 2]);
     beakGeo.computeVertexNormals();
-    const beak = new THREE.Mesh(beakGeo, new THREE.MeshLambertMaterial({ color: 0xff4500, flatShading: true }));
+    const beak = new THREE.Mesh(beakGeo, new THREE.MeshPhongMaterial({ color: 0xff4500, flatShading: true }));
     beak.castShadow = true; bird.add(beak);
 
     // Eyes
@@ -238,8 +238,8 @@ function setupBird() {
 }
 
 function setupPipes() {
-    const pipeMat = new THREE.MeshLambertMaterial({ color: 0x2ecc71, flatShading: true });
-    const capMat = new THREE.MeshLambertMaterial({ color: 0x27ae60, flatShading: true });
+    const pipeMat = new THREE.MeshPhongMaterial({ color: 0x2ecc71, flatShading: true });
+    const capMat = new THREE.MeshPhongMaterial({ color: 0x27ae60, flatShading: true });
 
     const createHalf = (isTop) => {
         const grp = new THREE.Group();
@@ -285,12 +285,12 @@ function setupEnvironment() {
     groundTex = new THREE.CanvasTexture(canvas);
     groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping; groundTex.repeat.set(20, 200);
     
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 3000), new THREE.MeshLambertMaterial({ map: groundTex }));
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 3000), new THREE.MeshPhongMaterial({ map: groundTex }));
     ground.rotation.x = -Math.PI / 2; ground.position.y = -6; ground.receiveShadow = true;
     scene.add(ground);
 
     // Parallax Mountains
-    const mMat = new THREE.MeshLambertMaterial({ color: 0x3d5a40, flatShading: true });
+    const mMat = new THREE.MeshPhongMaterial({ color: 0x3d5a40, flatShading: true });
     for(let i=0; i<15; i++) {
         const m = new THREE.Mesh(new THREE.ConeGeometry(8, 25, 5), mMat);
         m.position.set((Math.random()-0.5)*150, -2, -30 - Math.random()*120);
@@ -298,7 +298,7 @@ function setupEnvironment() {
     }
 
     // Parallax Clouds
-    const cMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, flatShading: true });
+    const cMat = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, flatShading: true });
     for(let i=0; i<20; i++) {
         const c = new THREE.Mesh(new THREE.DodecahedronGeometry(3 + Math.random()*2, 0), cMat);
         c.position.set((Math.random()-0.5)*150, 15 + Math.random()*10, -30 - Math.random()*120);
@@ -316,7 +316,7 @@ function setupEnvironment() {
 function setupParticles() {
     // Object Pool Pattern
     for(let i=0; i<25; i++) {
-        const f = new THREE.Mesh(new THREE.TetrahedronGeometry(0.18), new THREE.MeshLambertMaterial({ color: 0xffd700 }));
+        const f = new THREE.Mesh(new THREE.TetrahedronGeometry(0.18), new THREE.MeshPhongMaterial({ color: 0xffd700 }));
         f.visible = false; scene.add(f); feathers.push({ m: f, v: new THREE.Vector3() });
     }
     for(let i=0; i<15; i++) {
@@ -469,8 +469,8 @@ function animate() {
 
             // Parallax Movement (Texture wrapping offset trick)
             groundTex.offset.y -= CONFIG.pipeSpeed * 0.05 * dt;
-            mountains.children.forEach(m => { m.position.z += CONFIG.pipeSpeed * 0.4 * dt; if(m.position.z > 20) m.position.z -= 150; });
-            clouds.children.forEach(c => { c.position.z += CONFIG.pipeSpeed * 0.2 * dt; if(c.position.z > 20) { c.position.z -= 150; c.position.x = (Math.random()-0.5)*150; } });
+            mountains.forEach(m => { m.position.z += CONFIG.pipeSpeed * 0.4 * dt; if(m.position.z > 20) m.position.z -= 150; });
+            clouds.forEach(c => { c.position.z += CONFIG.pipeSpeed * 0.2 * dt; if(c.position.z > 20) { c.position.z -= 150; c.position.x = (Math.random()-0.5)*150; } });
 
         } else {
             // Death tumble
